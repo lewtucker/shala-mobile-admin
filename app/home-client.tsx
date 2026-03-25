@@ -74,7 +74,7 @@ export default function HomeClient() {
                      transition-colors hover:bg-[#ddd] no-underline"
         >
           Home Page
-          <span className="block text-[0.6rem] text-[#aaa] mt-1 tracking-[0.1em] italic normal-case">
+          <span className="block text-[0.6rem] text-[#444] mt-1 tracking-[0.1em] italic normal-case">
             Title, subtitle, footer, CTA
           </span>
         </Link>
@@ -85,7 +85,7 @@ export default function HomeClient() {
                      transition-colors hover:bg-[#ddd] no-underline"
         >
           Design Settings
-          <span className="block text-[0.6rem] text-[#aaa] mt-1 tracking-[0.1em] italic normal-case">
+          <span className="block text-[0.6rem] text-[#444] mt-1 tracking-[0.1em] italic normal-case">
             Fonts, colors, alignment
           </span>
         </Link>
@@ -96,7 +96,7 @@ export default function HomeClient() {
                      transition-colors hover:bg-[#ddd] no-underline"
         >
           About the Artist
-          <span className="block text-[0.6rem] text-[#aaa] mt-1 tracking-[0.1em] italic normal-case">
+          <span className="block text-[0.6rem] text-[#444] mt-1 tracking-[0.1em] italic normal-case">
             Photo, bio, button text
           </span>
         </Link>
@@ -107,7 +107,7 @@ export default function HomeClient() {
                      transition-colors hover:bg-[#ddd] no-underline"
         >
           Photo Library
-          <span className="block text-[0.6rem] text-[#aaa] mt-1 tracking-[0.1em] italic normal-case">
+          <span className="block text-[0.6rem] text-[#444] mt-1 tracking-[0.1em] italic normal-case">
             All photos, page assignments
           </span>
         </Link>
@@ -127,7 +127,7 @@ export default function HomeClient() {
                        transition-colors hover:bg-[#ddd] no-underline"
           >
             {page.name}
-            <span className="block text-[0.6rem] text-[#aaa] mt-1 tracking-[0.1em] italic normal-case">
+            <span className="block text-[0.6rem] text-[#444] mt-1 tracking-[0.1em] italic normal-case">
               {page.photos.length} photos
             </span>
           </Link>

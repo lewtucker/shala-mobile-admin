@@ -39,7 +39,7 @@ export default function LoginPage() {
         </p>
 
         <input
-          type="password"
+          type="text"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           placeholder="Password"

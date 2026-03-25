@@ -20,10 +20,11 @@ export async function POST(request: NextRequest) {
     const arrayBuf = await file.arrayBuffer();
     let buffer: Buffer<ArrayBuffer> = Buffer.from(arrayBuf) as Buffer<ArrayBuffer>;
 
-    // Convert HEIC to JPEG
+    // Convert HEIC to JPEG using heic-convert (sharp doesn't support HEIC)
     if (filename.toLowerCase().endsWith(".heic") || filename.toLowerCase().endsWith(".heif")) {
-      const sharp = (await import("sharp")).default;
-      buffer = await sharp(buffer).jpeg({ quality: 92 }).toBuffer() as Buffer<ArrayBuffer>;
+      const heicConvert = (await import("heic-convert")).default;
+      const converted = await heicConvert({ buffer, format: "JPEG", quality: 0.92 });
+      buffer = Buffer.from(converted) as Buffer<ArrayBuffer>;
       filename = filename.replace(/\.heic$/i, ".jpeg").replace(/\.heif$/i, ".jpeg");
     }
 

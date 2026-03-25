@@ -48,10 +48,7 @@ export default function HomeClient() {
 
   if (!content) return null;
 
-  // Only show editable gallery pages (not home, not "all")
-  const editablePages = content.galleryPages.filter(
-    (p) => p.slug !== "all" && p.slug !== "library"
-  );
+  const editablePages = content.galleryPages;
 
   return (
     <div className="min-h-dvh">
@@ -68,15 +65,66 @@ export default function HomeClient() {
       {/* Divider */}
       <div className="w-10 h-px bg-border mx-auto my-6" />
 
-      {/* Page list */}
+      {/* Home & Settings */}
+      <div className="flex flex-col items-center gap-3 max-w-sm mx-auto px-6 pb-4">
+        <Link
+          href="/home"
+          className="block w-full py-4 px-6 bg-white text-text border border-border text-center
+                     text-xs font-medium tracking-[0.25em] uppercase
+                     transition-colors hover:bg-[#ddd] no-underline"
+        >
+          Home Page
+          <span className="block text-[0.6rem] text-[#aaa] mt-1 tracking-[0.1em] italic normal-case">
+            Title, subtitle, footer, CTA
+          </span>
+        </Link>
+        <Link
+          href="/settings"
+          className="block w-full py-4 px-6 bg-white text-text border border-border text-center
+                     text-xs font-medium tracking-[0.25em] uppercase
+                     transition-colors hover:bg-[#ddd] no-underline"
+        >
+          Design Settings
+          <span className="block text-[0.6rem] text-[#aaa] mt-1 tracking-[0.1em] italic normal-case">
+            Fonts, colors, alignment
+          </span>
+        </Link>
+        <Link
+          href="/about"
+          className="block w-full py-4 px-6 bg-white text-text border border-border text-center
+                     text-xs font-medium tracking-[0.25em] uppercase
+                     transition-colors hover:bg-[#ddd] no-underline"
+        >
+          About the Artist
+          <span className="block text-[0.6rem] text-[#aaa] mt-1 tracking-[0.1em] italic normal-case">
+            Photo, bio, button text
+          </span>
+        </Link>
+        <Link
+          href="/library"
+          className="block w-full py-4 px-6 bg-white text-text border border-border text-center
+                     text-xs font-medium tracking-[0.25em] uppercase
+                     transition-colors hover:bg-[#ddd] no-underline"
+        >
+          Photo Library
+          <span className="block text-[0.6rem] text-[#aaa] mt-1 tracking-[0.1em] italic normal-case">
+            All photos, page assignments
+          </span>
+        </Link>
+      </div>
+
+      {/* Divider */}
+      <div className="w-10 h-px bg-border mx-auto my-4" />
+
+      {/* Gallery pages */}
       <div className="flex flex-col items-center gap-3 max-w-sm mx-auto px-6 pb-8">
         {editablePages.map((page) => (
           <Link
             key={page.slug}
             href={`/page/${page.slug}`}
-            className="block w-full py-4 px-6 bg-accent text-white text-center
+            className="block w-full py-4 px-6 bg-white text-text border border-border text-center
                        text-xs font-medium tracking-[0.25em] uppercase
-                       transition-colors hover:bg-[#555] no-underline"
+                       transition-colors hover:bg-[#ddd] no-underline"
           >
             {page.name}
             <span className="block text-[0.6rem] text-[#aaa] mt-1 tracking-[0.1em] italic normal-case">

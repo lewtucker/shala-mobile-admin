@@ -37,6 +37,18 @@ export default function GalleryEditor({ slug }: { slug: string }) {
 
   const page = content?.galleryPages.find((p) => p.slug === slug);
 
+  // Normalize metadata: ensure desc is always an array
+  function normalizeMetadata(raw: Record<string, PhotoMeta>): Record<string, PhotoMeta> {
+    const normalized: Record<string, PhotoMeta> = {};
+    for (const [key, val] of Object.entries(raw)) {
+      normalized[key] = {
+        ...val,
+        desc: Array.isArray(val.desc) ? val.desc : val.desc ? [val.desc] : [],
+      };
+    }
+    return normalized;
+  }
+
   const fetchContent = useCallback(() => {
     fetch("/api/content")
       .then((r) => {
@@ -46,7 +58,7 @@ export default function GalleryEditor({ slug }: { slug: string }) {
       .then((data) => {
         if (data) {
           setContent(data.siteContent);
-          setMetadata(data.metadata);
+          setMetadata(normalizeMetadata(data.metadata));
         }
         setLoading(false);
       });
@@ -98,6 +110,9 @@ export default function GalleryEditor({ slug }: { slug: string }) {
       setLoading(true);
       fetchContent();
       setDirty(false);
+    } else {
+      const err = await res.json().catch(() => ({ error: "Upload failed" }));
+      alert(`Upload error: ${err.error}`);
     }
     setUploading(false);
     // Reset file input
@@ -170,12 +185,12 @@ export default function GalleryEditor({ slug }: { slug: string }) {
           </h1>
           <button
             onClick={handleSave}
-            disabled={saving || !dirty}
+            disabled={saving}
             className={`text-xs tracking-[0.15em] font-medium transition-colors
               ${saved ? "text-green-600" : dirty ? "text-accent" : "text-muted"}
               disabled:opacity-40`}
           >
-            {saving ? "..." : saved ? "✓ Saved" : "Save"}
+            {saving ? "Saving..." : saved ? "✓ Saved" : dirty ? "Save" : "Save"}
           </button>
         </div>
       </header>
@@ -233,18 +248,14 @@ export default function GalleryEditor({ slug }: { slug: string }) {
                              font-[family-name:var(--font-cormorant)] text-lg italic
                              outline-none focus:border-accent transition-colors"
                 />
-                {(Array.isArray(meta.desc) ? meta.desc : [meta.desc]).map((line, i) => (
+                {meta.desc.map((line, i) => (
                   <input
-                    key={i}
+                    key={`${filename}-desc-${i}`}
                     type="text"
-                    value={line || ""}
+                    value={line}
                     onChange={(e) => {
-                      const newDesc = [...(Array.isArray(meta.desc) ? meta.desc : [meta.desc])];
+                      const newDesc = [...meta.desc];
                       newDesc[i] = e.target.value;
-                      // Remove trailing empty lines
-                      while (newDesc.length > 1 && !newDesc[newDesc.length - 1]) {
-                        newDesc.pop();
-                      }
                       updateMeta(filename, "desc", newDesc);
                     }}
                     placeholder={i === 0 ? "Medium" : i === 1 ? "Dimensions" : i === 2 ? "Year" : "Detail"}
@@ -255,8 +266,7 @@ export default function GalleryEditor({ slug }: { slug: string }) {
                 {/* Add description line button */}
                 <button
                   onClick={() => {
-                    const desc = Array.isArray(meta.desc) ? meta.desc : [meta.desc || ""];
-                    updateMeta(filename, "desc", [...desc, ""]);
+                    updateMeta(filename, "desc", [...meta.desc, ""]);
                   }}
                   className="text-xs text-muted hover:text-text tracking-wide"
                 >

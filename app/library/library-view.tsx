@@ -148,26 +148,17 @@ export default function LibraryView() {
                 {photo.filename}
               </p>
 
-              {/* Page badges — full width, scrollable */}
-              <div className="overflow-x-auto mt-2 -mx-4 px-4">
-                <div className="flex gap-1.5">
-                  {photo.pages.length > 0 ? (
-                    photo.pages.map((slug) => (
-                      <span
-                        key={slug}
-                        className="shrink-0 px-2 py-0.5 bg-white border border-border
-                                   text-[0.6rem] text-text tracking-wide"
-                      >
-                        {PAGE_NAMES[slug] || slug}
-                      </span>
-                    ))
-                  ) : (
-                    <span className="text-[0.6rem] text-red-500 italic">
-                      Not on any page
-                    </span>
-                  )}
-                </div>
-              </div>
+              {/* Pages list */}
+              <p className="text-xs text-text mt-2">
+                {photo.pages.length > 0 ? (
+                  <>
+                    <span className="font-medium">Pages: </span>
+                    {photo.pages.map((slug) => PAGE_NAMES[slug] || slug).join(", ")}
+                  </>
+                ) : (
+                  <span className="text-red-500 italic">Not on any page</span>
+                )}
+              </p>
 
               {/* Add to page dropdown */}
               {availablePages.length > 0 && (

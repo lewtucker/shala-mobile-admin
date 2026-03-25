@@ -37,18 +37,6 @@ export default function GalleryEditor({ slug }: { slug: string }) {
 
   const page = content?.galleryPages.find((p) => p.slug === slug);
 
-  // Normalize metadata: ensure desc is always an array
-  function normalizeMetadata(raw: Record<string, PhotoMeta>): Record<string, PhotoMeta> {
-    const normalized: Record<string, PhotoMeta> = {};
-    for (const [key, val] of Object.entries(raw)) {
-      normalized[key] = {
-        ...val,
-        desc: Array.isArray(val.desc) ? val.desc : val.desc ? [val.desc] : [],
-      };
-    }
-    return normalized;
-  }
-
   const fetchContent = useCallback(() => {
     fetch("/api/content")
       .then((r) => {
@@ -58,7 +46,15 @@ export default function GalleryEditor({ slug }: { slug: string }) {
       .then((data) => {
         if (data) {
           setContent(data.siteContent);
-          setMetadata(normalizeMetadata(data.metadata));
+          // Normalize desc to always be arrays
+          const normalized: Record<string, PhotoMeta> = {};
+          for (const [key, val] of Object.entries(data.metadata as Record<string, PhotoMeta>)) {
+            normalized[key] = {
+              ...val,
+              desc: Array.isArray(val.desc) ? val.desc : val.desc ? [val.desc] : [],
+            };
+          }
+          setMetadata(normalized);
         }
         setLoading(false);
       });
@@ -67,17 +63,6 @@ export default function GalleryEditor({ slug }: { slug: string }) {
   useEffect(() => {
     fetchContent();
   }, [fetchContent]);
-
-  function updateMeta(filename: string, field: "title" | "desc", value: string | string[]) {
-    setMetadata((prev) => ({
-      ...prev,
-      [filename]: {
-        ...prev[filename],
-        [field]: value,
-      },
-    }));
-    setDirty(true);
-  }
 
   async function handleSave() {
     if (!content) return;
@@ -106,7 +91,6 @@ export default function GalleryEditor({ slug }: { slug: string }) {
 
     const res = await fetch("/api/upload", { method: "POST", body: formData });
     if (res.ok) {
-      // Refresh content from GitHub
       setLoading(true);
       fetchContent();
       setDirty(false);
@@ -115,12 +99,11 @@ export default function GalleryEditor({ slug }: { slug: string }) {
       alert(`Upload error: ${err.error}`);
     }
     setUploading(false);
-    // Reset file input
     if (fileInputRef.current) fileInputRef.current.value = "";
   }
 
-  async function handleDeletePhoto(filename: string) {
-    if (!confirm(`Remove "${filename}" from this page?`)) return;
+  async function handleRemoveFromPage(filename: string) {
+    if (!confirm(`Remove this photo from ${page?.name}?`)) return;
 
     const res = await fetch("/api/delete-photo", {
       method: "POST",
@@ -185,12 +168,12 @@ export default function GalleryEditor({ slug }: { slug: string }) {
           </h1>
           <button
             onClick={handleSave}
-            disabled={saving}
+            disabled={saving || !dirty}
             className={`text-xs tracking-[0.15em] font-medium transition-colors
               ${saved ? "text-green-600" : dirty ? "text-accent" : "text-muted"}
               disabled:opacity-40`}
           >
-            {saving ? "Saving..." : saved ? "✓ Saved" : dirty ? "Save" : "Save"}
+            {saving ? "Saving..." : saved ? "✓ Saved" : "Save"}
           </button>
         </div>
       </header>
@@ -209,73 +192,44 @@ export default function GalleryEditor({ slug }: { slug: string }) {
                   className="w-full h-auto"
                   loading="lazy"
                 />
-                {/* Reorder + delete controls */}
+                {/* Reorder + remove controls */}
                 <div className="absolute top-2 right-2 flex gap-1">
                   <button
                     onClick={() => movePhoto(index, -1)}
                     disabled={index === 0}
                     className="w-8 h-8 bg-black/50 text-white text-sm rounded-full
                                disabled:opacity-30 active:bg-black/70"
-                  >
-                    ↑
-                  </button>
+                  >↑</button>
                   <button
                     onClick={() => movePhoto(index, 1)}
                     disabled={index === page.photos.length - 1}
                     className="w-8 h-8 bg-black/50 text-white text-sm rounded-full
                                disabled:opacity-30 active:bg-black/70"
-                  >
-                    ↓
-                  </button>
+                  >↓</button>
                   <button
-                    onClick={() => handleDeletePhoto(filename)}
+                    onClick={() => handleRemoveFromPage(filename)}
                     className="w-8 h-8 bg-red-600/70 text-white text-sm rounded-full
                                active:bg-red-700"
-                  >
-                    ✕
-                  </button>
+                  >✕</button>
                 </div>
               </div>
 
-              {/* Editable fields */}
-              <div className="mt-3 space-y-2">
-                <input
-                  type="text"
-                  value={meta.title}
-                  onChange={(e) => updateMeta(filename, "title", e.target.value)}
-                  placeholder="Title"
-                  className="w-full px-3 py-2 bg-white border border-border text-sm
-                             font-[family-name:var(--font-cormorant)] text-lg italic
-                             outline-none focus:border-accent transition-colors"
-                />
-                {meta.desc.map((line, i) => (
-                  <input
-                    key={`${filename}-desc-${i}`}
-                    type="text"
-                    value={line}
-                    onChange={(e) => {
-                      const newDesc = [...meta.desc];
-                      newDesc[i] = e.target.value;
-                      updateMeta(filename, "desc", newDesc);
-                    }}
-                    placeholder={i === 0 ? "Medium" : i === 1 ? "Dimensions" : i === 2 ? "Year" : "Detail"}
-                    className="w-full px-3 py-1.5 bg-white border border-border text-xs
-                               text-muted outline-none focus:border-accent transition-colors"
-                  />
-                ))}
-                {/* Add description line button */}
-                <button
-                  onClick={() => {
-                    updateMeta(filename, "desc", [...meta.desc, ""]);
-                  }}
-                  className="text-xs text-muted hover:text-text tracking-wide"
-                >
-                  + Add detail line
-                </button>
+              {/* Read-only title and description */}
+              <div className="mt-3">
+                {meta.title && (
+                  <p className="font-[family-name:var(--font-cormorant)] text-lg italic">
+                    {meta.title}
+                  </p>
+                )}
+                {meta.desc.length > 0 && (
+                  <p className="text-xs text-muted mt-1">
+                    {meta.desc.join(" · ")}
+                  </p>
+                )}
               </div>
 
-              {/* Filename label */}
-              <p className="text-[0.6rem] text-border mt-2 truncate">{filename}</p>
+              {/* Filename */}
+              <p className="text-[0.6rem] text-text mt-2 truncate">{filename}</p>
             </div>
           );
         })}
@@ -294,8 +248,8 @@ export default function GalleryEditor({ slug }: { slug: string }) {
           <button
             onClick={() => fileInputRef.current?.click()}
             disabled={uploading}
-            className="w-full py-3 bg-accent text-white text-xs font-medium
-                       tracking-[0.25em] uppercase transition-colors hover:bg-[#555]
+            className="w-full py-3 bg-white text-text border border-border text-xs font-medium
+                       tracking-[0.25em] uppercase transition-colors hover:bg-[#ddd]
                        disabled:opacity-40"
           >
             {uploading ? "Uploading..." : "+ Add Photo"}
